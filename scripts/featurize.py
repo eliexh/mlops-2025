@@ -33,6 +33,10 @@ def main():
     # Family size
     df['Family_size'] = df['SibSp'] + df['Parch'] + 1
     df['Family_size'] = df['Family_size'].apply(family_size)
+    # New feature: IsAlone
+    df['IsAlone'] = df['Family_size'].apply(lambda x: 1 if x == 'Alone' else 0)
+
+    
     
     # Drop original columns no longer needed
     df.drop(columns=['Name','Parch','SibSp','Ticket'], inplace=True)
