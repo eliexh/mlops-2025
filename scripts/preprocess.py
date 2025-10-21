@@ -2,27 +2,33 @@
 import argparse
 import pandas as pd
 
-def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Preprocess raw CSV data")
-    p.add_argument("--input", required=True, help="Path to raw CSV file")
+def build_parser():
+    p = argparse.ArgumentParser(description="Preprocess Titanic dataset")
+    p.add_argument("--input", required=True, help="Path to raw CSV")
     p.add_argument("--output", required=True, help="Path to save cleaned CSV")
     return p
 
 def main():
     args = build_parser().parse_args()
     
-    # Step 1: read the raw CSV
     df = pd.read_csv(args.input)
     
-    # Step 2: minimal cleaning
-    # Example: drop obvious unwanted columns
-    df = df.drop(columns=["unnecessary_column"], errors="ignore")
-    # Example: fill missing values
-    df = df.fillna(0)
+    # Drop 'Cabin' (and any other unneeded columns if desired)
+    if 'Cabin' in df.columns:
+        df.drop(columns=['Cabin'], inplace=True)
     
-    # Step 3: write cleaned dataframe
+    # Fill missing values
+    for col in df.columns:
+        if df[col].isnull().sum() > 0:
+            if df[col].dtype == 'object':
+                df[col].fillna(df[col].mode()[0], inplace=True)
+            else:
+                df[col].fillna(df[col].mean(), inplace=True)
+    
     df.to_csv(args.output, index=False)
-    print(f"Cleaned data saved to {args.output}")
+    print(f"Preprocessed data saved to {args.output}")
 
 if __name__ == "__main__":
     main()
+
+
