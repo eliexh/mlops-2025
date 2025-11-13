@@ -1,6 +1,14 @@
 # scripts/preprocess.py
+import sys
+import os
 import argparse
 import pandas as pd
+
+# Add project root to Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.package.preprocessing.preprocessor import TitanicPreprocessor
+
 
 def build_parser():
     p = argparse.ArgumentParser(description="Preprocess Titanic dataset")
@@ -10,25 +18,17 @@ def build_parser():
 
 def main():
     args = build_parser().parse_args()
-    
+
+    # Load data
     df = pd.read_csv(args.input)
-    
-    # Drop 'Cabin' (and any other unneeded columns if desired)
-    if 'Cabin' in df.columns:
-        df.drop(columns=['Cabin'], inplace=True)
-    
-    # Fill missing values
-    for col in df.columns:
-        if df[col].isnull().sum() > 0:
-            if df[col].dtype == 'object':
-                df[col].fillna(df[col].mode()[0], inplace=True)
-            else:
-                df[col].fillna(df[col].mean(), inplace=True)
-    
-    df.to_csv(args.output, index=False)
-    print(f"Preprocessed data saved to {args.output}")
+
+    # Use the class
+    preprocessor = TitanicPreprocessor()
+    df_clean = preprocessor.process(df)
+
+    # Save cleaned data
+    df_clean.to_csv(args.output, index=False)
+    print(f"✅ Preprocessed data saved to {args.output}")
 
 if __name__ == "__main__":
     main()
-
-
