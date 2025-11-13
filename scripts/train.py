@@ -1,60 +1,48 @@
 # scripts/train.py
+import sys
+import os
 import argparse
 import pandas as pd
-import os
 import pickle
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, MinMaxScaler
-from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder
+
+# Add project root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.package.models.logistic_model import LogisticModel
 
 def build_parser():
-    p = argparse.ArgumentParser(description="Train Titanic baseline model")
+    p = argparse.ArgumentParser(description="Train a Logistic Regression model")
     p.add_argument("--input", required=True, help="Path to feature CSV")
     p.add_argument("--output", required=True, help="Path to save trained model")
     return p
 
 def main():
-    args = build_parser().parse_args()
-    
-    # Load features
-    df = pd.read_csv(args.input)
-    
-    # Split X and y
-    if 'Survived' not in df.columns:
-        raise ValueError("Input CSV must contain 'Survived' column")
-    
-    X = df.drop(columns=['Survived'])
-    y = df['Survived']
-    
-    # Identify categorical columns
-    cat_cols = X.select_dtypes(include=['object']).columns.tolist()
-    num_cols = X.select_dtypes(exclude=['object']).columns.tolist()
-    
-    # Preprocessing pipeline
-    preprocessor = ColumnTransformer([
-        ('num', MinMaxScaler(), num_cols),
-        ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols)
-    ])
-    
-    # Full pipeline
-    pipeline = Pipeline([
-        ('preprocessor', preprocessor),
-        ('classifier', LogisticRegression(max_iter=1000, random_state=42))
-    ])
-    
-    # Train
-    pipeline.fit(X, y)
-    
-    # Create output folder if missing
-    os.makedirs(os.path.dirname(args.output), exist_ok=True)
-    
-    # Save model
-    with open(args.output, 'wb') as f:
-        pickle.dump(pipeline, f)
-    
-    print(f"Trained model saved to {args.output}")
+     args = build_parser().parse_args()
+     df = pd.read_csv(args.input)
 
-if __name__ == "__main__":
-    main()
+     # Split data
+     X = df.drop(columns=["Survived"])
+     y = df["Survived"]
+
+     # Convert categorical variables to numeric
+     for col in X.select_dtypes(include=['object']).columns:
+        X[col] = LabelEncoder().fit_transform(X[col])
+
+
+     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+     # Train model
+     model = LogisticModel()
+     model.train(X_train, y_train)
+
+     # Evaluate model
+     acc = model.evaluate(X_test, y_test)
+     print(f"✅ Model trained. Accuracy: {acc:.3f}")
+
+     # Save model
+     model.save(args.output)
+     print(f"💾 Model saved to {args.output}")
+
+
