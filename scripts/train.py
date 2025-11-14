@@ -26,10 +26,8 @@ def main():
      X = df.drop(columns=["Survived"])
      y = df["Survived"]
 
-     # Convert categorical variables to numeric
-     for col in X.select_dtypes(include=['object']).columns:
-        X[col] = LabelEncoder().fit_transform(X[col])
-
+     # One-hot encode categorical features
+     X = pd.get_dummies(X, drop_first=True)
 
      X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -41,8 +39,11 @@ def main():
      acc = model.evaluate(X_test, y_test)
      print(f"✅ Model trained. Accuracy: {acc:.3f}")
 
-     # Save model
-     model.save(args.output)
-     print(f"💾 Model saved to {args.output}")
+     with open(args.output, "wb") as f:
+        pickle.dump(model, f)
+     print(f"Model saved to {args.output}")
+
+if __name__ == "__main__":
+    main()
 
 
