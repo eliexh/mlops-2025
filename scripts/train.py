@@ -10,13 +10,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from src.package.models.logistic_model import LogisticModel
 from src.package.models.random_forest_model import RandomForestModel
+from src.package.models.xgboost_model import XGBoostModel
 
 
 def build_parser():
     p = argparse.ArgumentParser(description="Train a model")
     p.add_argument("--input", required=True, help="Path to feature CSV")
     p.add_argument("--output", required=True, help="Path to save trained model (.pkl)")
-    p.add_argument("--model", choices=["logreg", "rf"], default="logreg",
+    p.add_argument("--model", choices=["logreg", "rf", "xgb"], default="logreg",
                    help="Which model to train")
     return p
 
@@ -43,9 +44,12 @@ def main():
     if args.model == "logreg":
         print("🟧 Training Logistic Regression...")
         model = LogisticModel()
-    else:
+    elif args.model == "rf":
         print("🌲 Training RandomForest...")
         model = RandomForestModel()
+    else:
+        print("Training XGBoost...")
+        model = XGBoostModel()  
 
     # TRAIN THE MODEL (you were missing this!!!)
     model.train(X_train, y_train)
