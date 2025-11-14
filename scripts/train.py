@@ -3,45 +3,61 @@ import sys
 import os
 import argparse
 import pandas as pd
-import pickle
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 
 # Add project root
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.package.models.logistic_model import LogisticModel
+from src.package.models.random_forest_model import RandomForestModel
+
 
 def build_parser():
-    p = argparse.ArgumentParser(description="Train a Logistic Regression model")
+    p = argparse.ArgumentParser(description="Train a model")
     p.add_argument("--input", required=True, help="Path to feature CSV")
-    p.add_argument("--output", required=True, help="Path to save trained model")
+    p.add_argument("--output", required=True, help="Path to save trained model (.pkl)")
+    p.add_argument("--model", choices=["logreg", "rf"], default="logreg",
+                   help="Which model to train")
     return p
 
+
 def main():
-     args = build_parser().parse_args()
-     df = pd.read_csv(args.input)
+    args = build_parser().parse_args()
 
-     # Split data
-     X = df.drop(columns=["Survived"])
-     y = df["Survived"]
+    # Load dataset
+    df = pd.read_csv(args.input)
 
-     # One-hot encode categorical features
-     X = pd.get_dummies(X, drop_first=True)
+    # Split into X, y
+    X = df.drop(columns=["Survived"])
+    y = df["Survived"]
 
-     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # One-hot encode categorical variables
+    X = pd.get_dummies(X, drop_first=True)
 
-     # Train model
-     model = LogisticModel()
-     model.train(X_train, y_train)
+    # Split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
-     # Evaluate model
-     acc = model.evaluate(X_test, y_test)
-     print(f"✅ Model trained. Accuracy: {acc:.3f}")
+    # Pick model
+    if args.model == "logreg":
+        print("🟧 Training Logistic Regression...")
+        model = LogisticModel()
+    else:
+        print("🌲 Training RandomForest...")
+        model = RandomForestModel()
 
-     with open(args.output, "wb") as f:
-        pickle.dump(model, f)
-     print(f"Model saved to {args.output}")
+    # TRAIN THE MODEL (you were missing this!!!)
+    model.train(X_train, y_train)
+
+    # Evaluate
+    acc = model.evaluate(X_test, y_test)
+    print(f"✅ Model trained. Accuracy: {acc:.3f}")
+
+    # Save the model using its own save() method
+    model.save(args.output)
+    print(f"💾 Model saved to {args.output}")
+
 
 if __name__ == "__main__":
     main()
