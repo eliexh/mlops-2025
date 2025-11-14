@@ -1,0 +1,43 @@
+How did we implement the preprocessing class?
+Created BasePreprocessor interface and TitanicPreprocessor class using the logic from preprocess.py.
+
+How did we implement the feature engineering class?
+Created BaseFeaturesComputer interface and FeaturesComputer class, reused the logic from featurize.py.
+
+How did we implement models?
+Created BaseModel interface and implemented LogisticModel, RandomForestModel, and XGBoostModel classes.
+
+Compare Results of Models
+Model	         Accuracy (on train/test split)	 Observations
+Logistic Regression	 0.821	                     Simple, interpretable, converges fast, but linear.
+Random Forest	 0.832	                     Handles non-linear relationships better, slightly higher accuracy.
+XGBoost	         0.799	                     Powerful gradient boosting, but in our small dataset slightly lower; may need hyperparameter tuning.
+
+Summary:
+Random Forest performed best on our dataset.
+Logistic Regression is good as a baseline.
+XGBoost didn’t outperform RF here—likely due to small size of Titanic dataset and default hyperparameters.
+
+2️⃣ What can we still improve?
+
+-Feature Engineering
+Create more meaningful features, e.g., group rare titles, encode cabin deck, combine family size with passenger class.
+Handle categorical variables more systematically (avoid unseen categories in test).
+
+-Modeling
+Tune hyperparameters for RF and XGBoost using GridSearchCV or RandomizedSearchCV.
+Try other algorithms (SVM, LightGBM, etc.) to see if accuracy improves.
+
+-Pipeline Robustness
+Ensure train/test feature columns always match. Currently, unseen/missing columns in test can break predictions.
+Use ColumnTransformer or sklearn.pipeline.Pipeline to keep preprocessing consistent.
+
+-Evaluation Metrics
+Accuracy alone may not capture performance. Consider precision, recall, F1-score, ROC-AUC.
+
+-Scaling & Normalization
+Logistic Regression may converge faster and perform better if features are scaled.
+
+-Reproducibility
+Set random seeds consistently across all models.
+Save preprocessing steps (like encoders) so the test set can be processed exactly like the training set.
